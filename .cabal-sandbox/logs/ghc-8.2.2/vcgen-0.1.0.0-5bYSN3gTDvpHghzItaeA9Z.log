@@ -1,0 +1,11 @@
+cabal: Entering directory '.'
+Configuring vcgen-0.1.0.0...
+Preprocessing executable 'vcgen' for vcgen-0.1.0.0..
+Building executable 'vcgen' for vcgen-0.1.0.0..
+[1 of 4] Compiling Language         ( src/Language.hs, dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Language.o )
+[2 of 4] Compiling Parser.Lexer     ( dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Parser/Lexer.hs, dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Parser/Lexer.o )
+[3 of 4] Compiling Parser.Parser    ( dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Parser/Parser.hs, dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Parser/Parser.o )
+[4 of 4] Compiling Main             ( src/VCGen.hs, dist/dist-sandbox-56b19191/build/vcgen/vcgen-tmp/Main.o )
+Linking dist/dist-sandbox-56b19191/build/vcgen/vcgen ...
+Installing executable vcgen in /home/rushy/Desktop/School Stuff/CPSC 454/project1/cs454-haskell/.cabal-sandbox/bin
+cabal: Leaving directory '.'
