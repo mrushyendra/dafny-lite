@@ -56,4 +56,9 @@ data Statement = Assign Name ArithExp
 
 type Block = [Statement]
 
-type Program = (Name, Pre, Post, Block)
+data Program = Program Name Pre Post Block deriving (Show)
+
+conjoinAssns :: [Assertion] -> Assertion
+conjoinAssns (a:as) = AConj a (conjoinAssns as)
+
+

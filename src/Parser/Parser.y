@@ -64,7 +64,7 @@ import Parser.Lexer
 %%
 
 prog :: { Program }
-     : "program" name pres posts "is" block "end" { ($2, $3, $4, $6) }
+     : "program" name pres posts "is" block "end" { Program $2 $3 $4 $6 }
 
 arithExp :: { ArithExp }
          : int { Num $1 }
