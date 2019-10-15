@@ -17,7 +17,11 @@ tokens:-
     "else"                              { const TElse }
     "end"                               { const TEnd }
     "while"                             { const TWhile }
+    "forall"                            { const TForall }
+    "exists"                            { const TExists }
     "inv"                               { const TInv }
+    "pre"                               { const TPre }
+    "post"                              { const TPost }
     "do"                                { const TDo }
     "program"                           { const TProgram }
     "is"                                { const TIs }
@@ -36,6 +40,8 @@ tokens:-
     \|\|                                { TokenSymb }
     \&\&                                { TokenSymb }
 
+    \=\=\>                              { TokenSymb }
+
     \:\=                                { TokenSymb }
     \,                                  { TokenSymb }
     \;                                  { TokenSymb }
@@ -49,7 +55,11 @@ data Token = TokenInt Int
            | TElse
            | TEnd
            | TWhile
+           | TForall
+           | TExists
            | TInv
+           | TPre
+           | TPost
            | TDo
            | TProgram
            | TIs
