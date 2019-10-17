@@ -19,11 +19,13 @@ executable vcgen
   main-is:             VCGen.hs
   other-modules:         Language
                        , GuardedCommands
+                       , NameGen
                        , Parser.Lexer
                        , Parser.Parser
   -- other-extensions:
   build-depends:         array
                        , base >=4.10 && <=4.12.0.0
+                       , containers >= 0.5
   hs-source-dirs:      src
   default-language:    Haskell2010
 

@@ -1,6 +1,7 @@
 module Main where
 
 import Language
+import NameGen
 import GuardedCommands
 import Parser.Lexer
 import Parser.Parser
@@ -12,8 +13,9 @@ main = do
     as <- getArgs
     prog <- readFile (head as)
     let parsedProg = parseProg prog
-        guardedCmds = toGC parsedProg
+        ng = initNameGen
+        (guardedCmds, _) = toGC parsedProg ng
     -- calculate wp
     -- send to smt solver
 
-    print $ parsedProg
+    print $ guardedCmds
