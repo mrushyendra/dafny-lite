@@ -7,7 +7,7 @@ import qualified Data.Set as S
 -- Intermediate program representation without any loops
 data GC = Assume Assertion
         | Assert Assertion
-        | Havoc Name
+        | Havoc Name Type
         | Cons GC GC
         | NonDet GC GC
         | Skip
@@ -56,18 +56,18 @@ instance GCTranslator Statement where
 
 statementToGC :: Statement -> NameGen -> (GC, NameGen)
 statementToGC (Assign n aexp) ng =
-    let (tmp, ng') = freshSeededName n ng
+    let (tmp, ng') = freshSeededIntName n ng
     in (Cons (Assume (AComp (Eq (Var tmp) (Var n))))
-            (Cons (Havoc n)
+            (Cons (Havoc n GCInt)
                 (Assume (AComp (Eq (Var n) (subName aexp n tmp))))), ng')
 statementToGC (ParAssign n1 n2 aexp1 aexp2) ng =
     let (gc1, ng') = statementToGC (Assign n1 aexp1) ng
         (gc2, ng'') = statementToGC (Assign n2 aexp2) ng'
     in (Cons gc1 gc2, ng'')
 statementToGC (Write n aexp1 aexp2) ng =
-    let (tmpArr, ng') = freshSeededName n ng -- need different namespace for array, namegen already kinda takes care of this
+    let (tmpArr, ng') = freshSeededArrName n ng
     in ((Cons (Assume (AComp (Eq (Var tmpArr) (Var n))))
-            (Cons (Havoc n)
+            (Cons (Havoc n GCArr)
                 (Assume (ArrEq n tmpArr (subName aexp1 n tmpArr) (subName aexp2 n tmpArr))))), ng')
 statementToGC (If bexp thenExp elseExp) ng =
     let (thenExpGC, ng') = toGC thenExp ng
@@ -76,7 +76,7 @@ statementToGC (If bexp thenExp elseExp) ng =
             (Cons (Assume (ANot $ boolExpToAssn bexp)) elseExpGC)), ng'')
 statementToGC (While bexp inv blk) ng =
     let assn = (Assert $ conjoinAssns inv)
-        modified = map Havoc (S.toList $ modifiedVarNames blk)
+        modified = map (\(n, t) -> Havoc n t) (S.toList $ modifiedVarNames blk)
         assum = (Assume $ conjoinAssns inv)
         (blkGC, ng') = toGC blk ng
         choice = (NonDet (gcListToGC [(Assume (boolExpToAssn bexp)), blkGC, (Assert $ conjoinAssns inv), (Assume AFalse)])

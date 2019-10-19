@@ -38,7 +38,7 @@ data BoolExp = BCmp Comparison
 -- | Assertion Language
 data Assertion = AComp Comparison
                | ANot Assertion
-               | ArrEq Name Name ArithExp ArithExp -- equality between Array, and an Array that has element written to
+               | ArrEq Name Name ArithExp ArithExp -- analagous to a = store (tmp, idx, val)
                | ADisj Assertion Assertion
                | AConj Assertion Assertion
                | AImplies Assertion Assertion
@@ -54,6 +54,7 @@ type Pre = [Assertion]
 type Post = [Assertion]
 type Inv = [Assertion]
 
+-- | Program Commands
 data Statement = Assign Name ArithExp
                | ParAssign Name Name ArithExp ArithExp
                | Write Name ArithExp ArithExp
@@ -65,14 +66,25 @@ type Block = [Statement]
 
 data Program = Program Name Pre Post Block deriving (Show)
 
+-- | Types are inferred from the context in which they appear
+data Type = GCInt | GCArr deriving (Eq, Ord, Show)
+
 conjoinAssns :: [Assertion] -> Assertion
 conjoinAssns [a] = a
 conjoinAssns (a:as) = AConj a (conjoinAssns as)
 conjoinAssns _ = ATrue
 
--- Replaces all occurrences of old Name with new
+-- Given a Boolexp, returns an equivalent expression in the Assertion Language
+boolExpToAssn :: BoolExp -> Assertion
+boolExpToAssn (BCmp comp) = AComp comp
+boolExpToAssn (BNot bexp) = ANot (boolExpToAssn bexp)
+boolExpToAssn (BDisj bexp1 bexp2) = ADisj (boolExpToAssn bexp1) (boolExpToAssn bexp2)
+boolExpToAssn (BConj bexp1 bexp2) = AConj (boolExpToAssn bexp1) (boolExpToAssn bexp2)
+boolExpToAssn (BParens bexp) = AParens (boolExpToAssn bexp)
+
 class Names a where
-    subName :: a -> Name -> Name -> a
+    subName :: a -> Name -> Name -> a -- Replaces all occurrences of old Name with new
+    names :: a -> S.Set (Name, Type) -- Returns Set of all Names, along with their Type
 
 -- | Replaces all occurrence of Name `old` with `new` in the provided Assertion
 instance Names Assertion where
@@ -90,6 +102,17 @@ instance Names Assertion where
     subName (AParens assn) old new = AParens (subName assn old new)
     subName x _ _ = x
 
+    names (AComp comp) = names comp
+    names (ANot assn) = names assn
+    names (ArrEq n1 n2 aexp1 aexp2) = S.union (S.fromList [(n1, GCArr), (n2, GCArr)]) $ S.union (names aexp1) (names aexp2)
+    names (ADisj assn1 assn2) =  S.union (names assn1) (names assn2)
+    names (AConj assn1 assn2) =  S.union (names assn1) (names assn2)
+    names (AImplies assn1 assn2) = S.union (names assn1) (names assn2)
+    names (AForall ns assn) = S.union (S.fromList (map (\n -> (n, GCInt)) ns)) (names assn) -- assume all names in `ns` are Ints
+    names (AExists ns assn) = S.union (S.fromList (map (\n -> (n, GCInt)) ns)) (names assn)
+    names (AParens assn) = names assn
+    names _ = S.empty
+
 -- | Replaces all occurrence of Name `old` with `new` in the provided ArithExp
 instance Names ArithExp where
     subName r@(Num _) _ _ =  r
@@ -104,6 +127,16 @@ instance Names ArithExp where
     subName (Mod aexp1 aexp2) old new = Mod (subName aexp1 old new) (subName aexp2 old new)
     subName (Parens aexp) old new = Parens (subName aexp old new)
 
+    names (Num _) = S.empty
+    names (Var n) = S.singleton (n, GCInt)
+    names (Read n aexp) = S.union (S.singleton (n, GCArr)) (names aexp)
+    names (Add aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Sub aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Mul aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Div aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Mod aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Parens aexp) = names aexp
+
 instance Names Comparison where
     subName (Eq aexp1 aexp2) old new = Eq (subName aexp1 old new) (subName aexp2 old new)
     subName (Neq aexp1 aexp2) old new = Neq (subName aexp1 old new) (subName aexp2 old new)
@@ -111,6 +144,13 @@ instance Names Comparison where
     subName (Ge aexp1 aexp2) old new = Ge (subName aexp1 old new) (subName aexp2 old new)
     subName (Lt aexp1 aexp2) old new = Lt (subName aexp1 old new) (subName aexp2 old new)
     subName (Gt aexp1 aexp2) old new = Gt (subName aexp1 old new) (subName aexp2 old new)
+
+    names (Eq aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Neq aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Le aexp1 aexp2) =  S.union (names aexp1) (names aexp2)
+    names (Ge aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Lt aexp1 aexp2) = S.union (names aexp1) (names aexp2)
+    names (Gt aexp1 aexp2) = S.union (names aexp1) (names aexp2)
 
 subNames :: [Name] -> Name -> Name -> [Name]
 subNames (x:xs) old new =
@@ -120,23 +160,16 @@ subNames [] _ _ = []
 
 instance Names Name where
     subName curr old new = if (curr == old) then new else curr
-
--- Given a Boolexp, returns an equivalent expression in the Assertion Language
-boolExpToAssn :: BoolExp -> Assertion
-boolExpToAssn (BCmp comp) = AComp comp
-boolExpToAssn (BNot bexp) = ANot (boolExpToAssn bexp)
-boolExpToAssn (BDisj bexp1 bexp2) = ADisj (boolExpToAssn bexp1) (boolExpToAssn bexp2)
-boolExpToAssn (BConj bexp1 bexp2) = AConj (boolExpToAssn bexp1) (boolExpToAssn bexp2)
-boolExpToAssn (BParens bexp) = AParens (boolExpToAssn bexp)
+    names _ = S.empty -- not used
 
 -- Returns Set of modified var names
 class ModifiedVarNames a where
-    modifiedVarNames :: a -> S.Set Name
+    modifiedVarNames :: a -> S.Set (Name, Type)
 
 instance ModifiedVarNames Statement where
-    modifiedVarNames (Assign n _) = S.singleton n
-    modifiedVarNames (ParAssign n1 n2 _ _) = S.fromList [n1, n2]
-    modifiedVarNames (Write n _ _) = S.singleton n
+    modifiedVarNames (Assign n _) = S.singleton (n, GCInt)
+    modifiedVarNames (ParAssign n1 n2 _ _) = S.fromList [(n1, GCInt), (n2, GCInt)]
+    modifiedVarNames (Write n _ _) = S.singleton (n, GCArr)
     modifiedVarNames (If _ blk1 blk2) = S.union (modifiedVarNames blk1) (modifiedVarNames blk2)
     modifiedVarNames (While _ _ blk) = modifiedVarNames blk
 
@@ -144,4 +177,3 @@ instance ModifiedVarNames a => ModifiedVarNames [a] where
     modifiedVarNames [] = S.empty
     modifiedVarNames [x] = modifiedVarNames x
     modifiedVarNames (x:xs) = S.union (modifiedVarNames x) (modifiedVarNames xs)
-
