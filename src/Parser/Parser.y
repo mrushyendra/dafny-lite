@@ -57,9 +57,7 @@ import Parser.Lexer
 %left '+' '-'
 %left '*' '/' '%'
 
-%left "||"
-%left "&&"
-%left '!'
+%left '==>' "||" "&&" '!' '(' ')'
 
 %%
 
