@@ -19,6 +19,7 @@ executable vcgen
   main-is:             VCGen.hs
   other-modules:         Language
                        , GuardedCommands
+                       , WeakestPreConds
                        , NameGen
                        , Parser.Lexer
                        , Parser.Parser
@@ -28,6 +29,10 @@ executable vcgen
                        , containers >= 0.5
   hs-source-dirs:      src
   default-language:    Haskell2010
+  ghc-options:         -Wall
+                       -- -ddump-splices
+                       -fprof-auto
+                       -- -fexternal-interpreter -opti+RTS -opti-p
 
 executable parseImp
   main-is:             parseImp.hs
