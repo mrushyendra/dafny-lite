@@ -18,4 +18,6 @@ main = do
     -- calculate wp
     -- send to smt solver
 
+    print parsedProg
+    print "Guarded Commands: "
     print $ guardedCmds
