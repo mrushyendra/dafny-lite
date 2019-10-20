@@ -27,4 +27,3 @@ computeWeakestPre' (NonDet gc1 gc2) assn ng =
         (wp2, ng'') = computeWeakestPre' gc2 assn ng'
     in (AConj wp1 wp2, ng'')
 computeWeakestPre' Skip assn ng = (assn, ng)
-

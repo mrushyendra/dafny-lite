@@ -38,6 +38,7 @@ data BoolExp = BCmp Comparison
 -- | Assertion Language
 data Assertion = AComp Comparison
                | ANot Assertion
+               | ArrNMEq Name Name
                | ArrEq Name Name ArithExp ArithExp -- analagous to a = store (tmp, idx, val)
                | ADisj Assertion Assertion
                | AConj Assertion Assertion
@@ -90,9 +91,10 @@ class Names a where
 instance Names Assertion where
     subName (AComp comp) old new = AComp $ subName comp old new
     subName (ANot assn) old new = ANot $ subName assn old new
+    subName (ArrNMEq n1 n2) old new = ArrNMEq (subName n1 old new) (subName n2 old new)
     subName (ArrEq n1 n2 aexp1 aexp2) old new =
-        let n1' = if (n1 == old) then new else old
-            n2' = if (n2 == old) then new else old
+        let n1' = if (n1 == old) then new else n1
+            n2' = if (n2 == old) then new else n2
         in (ArrEq n1' n2' (subName aexp1 old new) (subName aexp2 old new))
     subName (ADisj assn1 assn2) old new = ADisj (subName assn1 old new) (subName assn2 old new)
     subName (AConj assn1 assn2) old new = AConj (subName assn1 old new) (subName assn2 old new)
@@ -104,6 +106,7 @@ instance Names Assertion where
 
     names (AComp comp) = names comp
     names (ANot assn) = names assn
+    names (ArrNMEq n1 n2) = S.fromList [(n1, GCArr), (n2, GCArr)]
     names (ArrEq n1 n2 aexp1 aexp2) = S.union (S.fromList [(n1, GCArr), (n2, GCArr)]) $ S.union (names aexp1) (names aexp2)
     names (ADisj assn1 assn2) =  S.union (names assn1) (names assn2)
     names (AConj assn1 assn2) =  S.union (names assn1) (names assn2)

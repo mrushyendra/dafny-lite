@@ -40,7 +40,7 @@ cmdsToGC postGC cmds ng =
 
 -- Takes in an existing GC `cmdsGC` and a Pre Condition `p`. Converts `p` to Guarded Commands and combines it with `cmdsGC`
 preToGC :: GC -> Pre -> GC
-preToGC cmdsGC [] = Cons (Assume AFalse) cmdsGC
+preToGC cmdsGC [] = Cons (Assume ATrue) cmdsGC
 preToGC cmdsGC p = Cons (Assume (conjoinAssns p)) cmdsGC
 
 instance GCTranslator a => GCTranslator [a] where
@@ -66,9 +66,9 @@ statementToGC (ParAssign n1 n2 aexp1 aexp2) ng =
     in (Cons gc1 gc2, ng'')
 statementToGC (Write n aexp1 aexp2) ng =
     let (tmpArr, ng') = freshSeededArrName n ng
-    in ((Cons (Assume (AComp (Eq (Var tmpArr) (Var n))))
+    in (Cons (Assume (ArrNMEq tmpArr n))
             (Cons (Havoc n GCArr)
-                (Assume (ArrEq n tmpArr (subName aexp1 n tmpArr) (subName aexp2 n tmpArr))))), ng')
+                (Assume (ArrEq n tmpArr (subName aexp1 n tmpArr) (subName aexp2 n tmpArr)))), ng')
 statementToGC (If bexp thenExp elseExp) ng =
     let (thenExpGC, ng') = toGC thenExp ng
         (elseExpGC, ng'') = toGC elseExp ng'

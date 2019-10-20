@@ -48,6 +48,7 @@ declConsts assn =
 assnToTerm :: Assertion -> Term
 assnToTerm (AComp cmp) = compToTerm cmp
 assnToTerm (ANot assn) = App FNot [assnToTerm assn]
+assnToTerm (ArrNMEq n1 n2) = App FEq [nameToTerm n1, nameToTerm n2]
 assnToTerm (ArrEq n1 n2 aexp1 aexp2) = App FEq [nameToTerm n1, (App FStore [(nameToTerm n2), (aexpToTerm aexp1), (aexpToTerm aexp2)])]
 assnToTerm (ADisj assn1 assn2) = App FOr [(assnToTerm assn1), (assnToTerm assn2)]
 assnToTerm (AConj assn1 assn2) = App FAnd [(assnToTerm assn1), (assnToTerm assn2)]

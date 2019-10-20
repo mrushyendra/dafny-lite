@@ -22,12 +22,12 @@ main = do
     (stdin_hdl, stdout_hdl, _) <- createZ3Process
     res <- callZ3 wpZ3 stdin_hdl stdout_hdl
 
-    print parsedProg
+    {- print parsedProg
     print "Guarded Commands: "
     print guardedCmds
     print "Weakest Precondition: "
     print wp
     print "Input to Z3: "
     print wpScript
-    print "Res: "
+    print "Res: "-}
     print res
