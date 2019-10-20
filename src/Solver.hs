@@ -6,12 +6,11 @@ import qualified Data.List.NonEmpty as NL
 import qualified Data.Set as S
 
 -- | The following types correspond to a minimal subset of the Z3 syntax
-newtype Script = Script [Commands] deriving (Show)
+newtype Script = Script [Command]
 
-data Commands = DeclareConst Symbol Sort
+data Command = DeclareConst Symbol Sort
               | Assert Term
               | CheckSat
-              deriving (Show)
 
 data Term = Forall (NL.NonEmpty SortedVar) Term
           | Exists (NL.NonEmpty SortedVar) Term
@@ -21,10 +20,8 @@ data Term = Forall (NL.NonEmpty SortedVar) Term
           | Const Symbol
           | STrue
           | SFalse
-          deriving (Show)
 
-data PredefinedFn = FAdd | FSub | FMul | FDiv | FMod | FEq | FNeq | FLe | FGe | FLt | FGt | FAnd | FOr | FNot | FImplies 
-                  | FSelect | FStore deriving (Show)
+data PredefinedFn = FAdd | FSub | FMul | FDiv | FMod | FEq | FLe | FGe | FLt | FGt | FAnd | FOr | FNot | FImplies | FSelect | FStore
 
 type Symbol = String
 
@@ -32,21 +29,20 @@ type Symbol = String
 data Sort = SInt 
           | SBool
           | SArray Sort Sort
-          deriving (Show)
 
-data SortedVar = SortedVar Symbol Sort deriving (Show)
+data SortedVar = SortedVar Symbol Sort
 
--- | Convert Assertion to a Script that can be sent to Z3
+-- | Translate Assertion to a Script that can be sent to Z3
 assnToScript :: Assertion -> NameGen -> Script
 assnToScript assn _ = Script $ (declConsts assn) ++ [Assert $ assnToTerm assn] ++ [CheckSat]
 
 -- | Declare names of all variables in Assertion
-declConsts :: Assertion -> [Commands]
+declConsts :: Assertion -> [Command]
 declConsts assn =
     let ns = S.toList $ names assn
     in map (\(n, typ) -> DeclareConst n (typToSort typ)) ns
 
--- | Convert Assertion to a Z3 term
+-- | Translate Assertion to a Z3 term
 assnToTerm :: Assertion -> Term
 assnToTerm (AComp cmp) = compToTerm cmp
 assnToTerm (ANot assn) = App FNot [assnToTerm assn]
@@ -60,7 +56,7 @@ assnToTerm (AParens assn) = TParens (assnToTerm assn)
 assnToTerm ATrue = STrue
 assnToTerm AFalse = SFalse
 
--- | Convert Name to a Z3 term
+-- | Translate Name to a Z3 term
 nameToTerm :: Name -> Term
 nameToTerm n = Const n
 
@@ -75,16 +71,16 @@ namesToSortedVars' [] = []
 namesToSortedVars' [n] = [SortedVar n SInt]
 namesToSortedVars' (n:ns) = (SortedVar n SInt) : (namesToSortedVars' ns)
 
--- | Convert Comparison to a Z3 term
+-- | Translate Comparison to a Z3 term
 compToTerm :: Comparison -> Term
 compToTerm (Eq aexp1 aexp2) = App FEq [(aexpToTerm aexp1), (aexpToTerm aexp2)]
-compToTerm (Neq aexp1 aexp2) = App FNeq [(aexpToTerm aexp1), (aexpToTerm aexp2)]
+compToTerm (Neq aexp1 aexp2) = App FNot [App FEq [(aexpToTerm aexp1), (aexpToTerm aexp2)]]
 compToTerm (Le aexp1 aexp2) = App FLe [(aexpToTerm aexp1), (aexpToTerm aexp2)]
 compToTerm (Ge aexp1 aexp2) = App FGe [(aexpToTerm aexp1), (aexpToTerm aexp2)]
 compToTerm (Lt aexp1 aexp2) = App FLt [(aexpToTerm aexp1), (aexpToTerm aexp2)]
 compToTerm (Gt aexp1 aexp2) = App FGt [(aexpToTerm aexp1), (aexpToTerm aexp2)]
 
--- | Convert ArithExp to a Z3 Term
+-- | Translate ArithExp to a Z3 Term
 aexpToTerm :: ArithExp -> Term
 aexpToTerm (Num i) = Numeral i
 aexpToTerm (Var n) = Const n
@@ -100,3 +96,53 @@ aexpToTerm (Parens aexp) = TParens (aexpToTerm aexp)
 typToSort :: Type -> Sort
 typToSort GCInt = SInt
 typToSort GCArr = SArray SInt SInt -- only 1 type of array in the IMP Language
+
+-- | Conversion of Z3 syntax to String
+instance Show Script where
+    show (Script xs) = showElems (map show xs)
+
+instance Show Command where
+    show (DeclareConst sym sort) = "(declare-const " ++ sym ++ " " ++ (show sort) ++ ")\n"
+    show (Assert t) = "(assert " ++ (show t) ++ ")\n"
+    show CheckSat = "(check-sat)\n"
+
+instance Show Term where
+    show (Forall sortedVars t) = "(forall (" ++ (showElems $ NL.toList $ NL.map show sortedVars) ++ ") " ++ (show t) ++")"
+    show (Exists sortedVars t) = "(exists (" ++ (showElems $ NL.toList $ NL.map show sortedVars) ++ ") " ++ (show t) ++ ")"
+    show (App fn ts) = "(" ++ (show fn) ++ " " ++ (showElems $ map show ts) ++ ")"
+    show (TParens t) = show t -- No need for Parens anymore
+    show (Numeral i) = show i
+    show (Const sym) = sym
+    show STrue = "true"
+    show SFalse = "false"
+
+instance Show PredefinedFn where
+    show FAdd = "+"
+    show FSub = "-"
+    show FMul = "*"
+    show FDiv = "div"
+    show FMod = "mod"
+    show FEq = "="
+    show FLe = "<="
+    show FGe = ">="
+    show FLt = "<"
+    show FGt = ">"
+    show FAnd = "and"
+    show FOr = "or"
+    show FNot = "not"
+    show FImplies = "=>"
+    show FSelect = "select"
+    show FStore = "store"
+
+instance Show Sort where
+    show SInt = "Int"
+    show SBool = "Bool"
+    show (SArray s1 s2) = "(Array " ++ (show s1) ++ " " ++ (show s2) ++ ")"
+
+instance Show SortedVar where
+    show (SortedVar sym sort) = "(" ++ sym ++ " " ++ (show sort) ++ ")"
+
+showElems :: [String] -> String
+showElems [] = ""
+showElems [x] = x
+showElems (x:xs) = x ++ " " ++ showElems xs

@@ -27,5 +27,5 @@ main = do
     print guardedCmds
     print "Weakest Precondition: "
     print wp
-    print "Z3 Input: "
+    print "Input to Z3: "
     print wpZ3
