@@ -1,6 +1,5 @@
 module Main where
 
-import Language
 import NameGen
 import Solver
 import GuardedCommands
@@ -13,14 +12,15 @@ main :: IO ()
 main = do
     as <- getArgs
     prog <- readFile (head as)
-    let parsedProg = parseProg prog
-        -- add names to nameGen
-        ng = initNameGen
+    let ng = initNameGen
+        parsedProg = parseProg prog
         (guardedCmds, ng') = toGC parsedProg ng
-        (wp, ng'') = computeWeakestPre guardedCmds ATrue ng'
-        wpZ3 = assnToScript wp ng''
-        -- convert to smt-lib (z3) string
-        -- send to smt solver
+        (wp, ng'') = computeWeakestPre guardedCmds ng'
+        wpScript = assnToScript wp ng''
+        wpZ3 = show wpScript
+
+    (stdin_hdl, stdout_hdl, _) <- createZ3Process
+    res <- callZ3 wpZ3 stdin_hdl stdout_hdl
 
     print parsedProg
     print "Guarded Commands: "
@@ -28,4 +28,6 @@ main = do
     print "Weakest Precondition: "
     print wp
     print "Input to Z3: "
-    print wpZ3
+    print wpScript
+    print "Res: "
+    print res

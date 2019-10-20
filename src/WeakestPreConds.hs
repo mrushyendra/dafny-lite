@@ -6,9 +6,9 @@ import NameGen
 
 -- | Given a Guarded Command representing a Program, and a final assertion, computes the Weakest Precondition for the Program
 -- To verify a program, we check the negation of the derived Weakest Precondition. If it is UNSAT, then the assertion is valid
-computeWeakestPre :: GC -> Assertion -> NameGen -> (Assertion, NameGen)
-computeWeakestPre gc assn ng =
-    let (wp, ng') = computeWeakestPre' gc assn ng
+computeWeakestPre :: GC -> NameGen -> (Assertion, NameGen)
+computeWeakestPre gc ng =
+    let (wp, ng') = computeWeakestPre' gc ATrue ng
     in (ANot wp, ng')
 
 computeWeakestPre' :: GC -> Assertion -> NameGen -> (Assertion, NameGen)

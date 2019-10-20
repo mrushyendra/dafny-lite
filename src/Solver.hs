@@ -2,6 +2,8 @@ module Solver where
 
 import Language
 import NameGen
+import System.Process
+import System.IO
 import qualified Data.List.NonEmpty as NL
 import qualified Data.Set as S
 
@@ -146,3 +148,40 @@ showElems :: [String] -> String
 showElems [] = ""
 showElems [x] = x
 showElems (x:xs) = x ++ " " ++ showElems xs
+
+-- | Spawns a Z3 process and creates pipe to it
+createZ3Process :: IO (Handle, Handle, ProcessHandle)
+createZ3Process = do
+    let pr = proc "../z3-4.8.5-x64-ubuntu-16.04/bin/z3" ["-smt2", "-in"]
+    (mb_stdin_hdl, mb_stdout_hdl, mb_stderr_hdl, ph) <- createProcess (pr { std_in = CreatePipe, std_out = CreatePipe })
+
+    case mb_stderr_hdl of
+        Just stderr_hdl -> hClose stderr_hdl
+        Nothing -> return ()
+
+    let stdin_hdl = case mb_stdin_hdl of
+            Just x -> x
+            Nothing -> error "Unable to open stdin"
+        stdout_hdl = case mb_stdout_hdl of
+            Just x -> x
+            Nothing -> error "Unable to open stdout"
+
+    hSetBuffering stdin_hdl LineBuffering
+    return (stdin_hdl, stdout_hdl, ph)
+
+-- | Sends the String representing the computed Weakest Precondition to Z3 and returns "Verified" or "Not Verified" based on Z3's output
+callZ3 :: String -> Handle -> Handle -> IO (String)
+callZ3 wp stdin_hdl stdout_hdl = do
+    hPutStr stdin_hdl wp
+    isOutput <- hWaitForInput stdout_hdl (-1)
+    res <- case isOutput of
+        True -> do
+            output <- hGetLine stdout_hdl
+            if (output == "sat")
+                then return "Not verified"
+            else if (output == "unsat")
+                then return "Verified"
+            else return "UNKNOWN"
+        False -> return "UNKNOWN"
+    hPutStr stdin_hdl "(exit)"
+    return res
