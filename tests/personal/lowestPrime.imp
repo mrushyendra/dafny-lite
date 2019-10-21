@@ -1,0 +1,28 @@
+program LowestPrimeGreaterN
+  pre n > 2
+  post forall i, (n < i && i < x) ==> (exists j, (1 < j && j < i) ==> (i % j) = 0)
+  post forall i, (1 < i && i < x) ==> ((x % i) != 0)
+is
+  x := n;
+  p := 0;
+  while (p != 1)
+    inv forall i, (n < i && i < x) ==> (exists j, (1 < j && j < i) ==> (i % j) = 0)
+    inv (p = 1) ==> (forall i, (1 < i && i < x) ==> ((x % i) != 0))
+  do
+    x := x + 1;
+    counter := 2;
+    break := 0;
+    while (counter < x && break != 1)
+      inv (break = 0) ==> (forall i, (1 < i && i < counter) ==> ((x % i) != 0))
+      inv (break = 1) ==> (exists i, (1 < i && i < counter) ==> ((x % i) = 0))
+    do
+      if (x % counter) = 0 then
+        break := 1;
+      end     
+      counter := counter + 1;
+    end
+    if break = 0 then
+      p := 1;
+    end
+  end
+end

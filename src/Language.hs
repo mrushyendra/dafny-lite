@@ -111,8 +111,8 @@ instance Names Assertion where
     names (ADisj assn1 assn2) =  S.union (names assn1) (names assn2)
     names (AConj assn1 assn2) =  S.union (names assn1) (names assn2)
     names (AImplies assn1 assn2) = S.union (names assn1) (names assn2)
-    names (AForall ns assn) = S.union (S.fromList (map (\n -> (n, GCInt)) ns)) (names assn) -- assume all names in `ns` are Ints
-    names (AExists ns assn) = S.union (S.fromList (map (\n -> (n, GCInt)) ns)) (names assn)
+    names (AForall ns assn) = S.difference (names assn) (S.fromList (map (\n -> (n, GCInt)) ns)) -- assume all names in `ns` are Ints
+    names (AExists ns assn) = S.difference (names assn) (S.fromList (map (\n -> (n, GCInt)) ns))
     names (AParens assn) = names assn
     names _ = S.empty
 

@@ -27,8 +27,8 @@ freshSeededName n mn txt =
     case (M.lookup n mn) of
         (Just maxNum) ->
             let maxNum' = maxNum + 1
-            in (txt ++ n ++ (show maxNum'), M.insert n maxNum' mn)
-        Nothing -> (txt ++ n ++ (show (0::Integer)), M.insert n 0 mn)
+            in (txt ++ n ++ "__" ++ (show maxNum'), M.insert n maxNum' mn)
+        Nothing -> (txt ++ n ++ "__" ++ (show (0::Integer)), M.insert n 0 mn)
 
 -- | Returns list of all Names corresponding to Ints that have been generated so far
 intNames :: NameGen -> [Name]

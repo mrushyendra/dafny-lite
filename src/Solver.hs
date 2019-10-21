@@ -153,7 +153,7 @@ showElems (x:xs) = x ++ " " ++ showElems xs
 -- | Spawns a Z3 process and creates pipe to it
 createZ3Process :: IO (Handle, Handle, ProcessHandle)
 createZ3Process = do
-    let pr = proc "../z3-4.8.5-x64-ubuntu-16.04/bin/z3" ["-smt2", "-in"]
+    let pr = proc "../z3-4.8.1.016872a5e0f6-x64-ubuntu-16.04/bin/z3" ["-smt2", "-in"]
     (mb_stdin_hdl, mb_stdout_hdl, mb_stderr_hdl, ph) <- createProcess (pr { std_in = CreatePipe, std_out = CreatePipe })
 
     case mb_stderr_hdl of

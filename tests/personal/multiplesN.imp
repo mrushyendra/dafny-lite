@@ -1,0 +1,12 @@
+program Multiples
+  post forall i, (0 <= i && i < N) ==> a[i] = i * num
+is
+  counter := 0;
+  N := 10;
+  while (counter < N)
+    inv forall i, (0 <= i && i < counter) ==> a[i] = i * num
+  do
+    a[counter] := counter * num;
+    counter := counter + 1;
+  end
+end

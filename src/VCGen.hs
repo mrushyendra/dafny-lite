@@ -19,15 +19,18 @@ main = do
         wpScript = assnToScript wp ng''
         wpZ3 = show wpScript
 
+    -- print (wpScript)
+
     (stdin_hdl, stdout_hdl, _) <- createZ3Process
     res <- callZ3 wpZ3 stdin_hdl stdout_hdl
 
-    {- print parsedProg
+    print "ParsedProg: "
+    print parsedProg
     print "Guarded Commands: "
     print guardedCmds
     print "Weakest Precondition: "
     print wp
     print "Input to Z3: "
     print wpScript
-    print "Res: "-}
+    print "Res: "
     print res
