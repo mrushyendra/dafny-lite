@@ -1,0 +1,13 @@
+program LowestMultipleGreaterN
+  pre n > 2
+  pre m > 0 && m < n
+  post forall i, (n < i && i < x) ==> (i % m) != 0
+  post (x % m) = 0
+is
+  x := n + 1;
+  while ((x % m) != 0)
+    inv forall i, (n < i && i < x) ==> (i % m) != 0
+  do
+    x := x + 1;
+  end
+end

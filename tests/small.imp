@@ -1,6 +1,0 @@
-program find
-  pre  0 <= N
-  post forall i, (0 <= i && i < N)
-is
-  n := 0;
-end

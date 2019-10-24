@@ -26,5 +26,6 @@ and verifies the program using Microsoft's Z3 SMT Solver.
 
 ###### Command Line:
 
+Run the built executable with any IMP program
 `cabal run vcgen ./Path/to/program.imp`
 ---
