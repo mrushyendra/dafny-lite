@@ -1,0 +1,14 @@
+program Hashtable
+  pre N > 0
+  pre M > 0
+  post forall i, (0 < i && i <= M) ==> out[in[i]] = 1
+is
+  idx := 0;
+  while (idx < M)
+    inv forall i, (0 < i && i <= idx) ==> out[in[i]] = 1
+  do
+    idx := idx + 1;
+    num := in[idx];
+    out[num] := 1;
+  end
+end

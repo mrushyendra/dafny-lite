@@ -38,7 +38,7 @@ data BoolExp = BCmp Comparison
 -- | Assertion Language
 data Assertion = AComp Comparison
                | ANot Assertion
-               | ArrNMEq Name Name
+               | ArrNMEq Name Name -- equate array names to each other
                | ArrEq Name Name ArithExp ArithExp -- analagous to a = store (tmp, idx, val)
                | ADisj Assertion Assertion
                | AConj Assertion Assertion
@@ -165,7 +165,7 @@ instance Names Name where
     subName curr old new = if (curr == old) then new else curr
     names _ = S.empty -- not used
 
--- Returns Set of modified var names
+-- Returns Set of Var Names that are modified along with their type
 class ModifiedVarNames a where
     modifiedVarNames :: a -> S.Set (Name, Type)
 

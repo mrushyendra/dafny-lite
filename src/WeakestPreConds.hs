@@ -1,4 +1,4 @@
-module WeakestPreConds where
+module WeakestPreConds ( computeWeakestPre ) where
 
 import Language
 import GuardedCommands

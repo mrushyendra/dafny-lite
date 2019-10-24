@@ -1,4 +1,7 @@
-module Solver where
+module Solver ( Script (..)
+              , assnToScript
+              , createZ3Process
+              , callZ3 ) where
 
 import Language
 import NameGen
@@ -153,7 +156,7 @@ showElems (x:xs) = x ++ " " ++ showElems xs
 -- | Spawns a Z3 process and creates pipe to it
 createZ3Process :: IO (Handle, Handle, ProcessHandle)
 createZ3Process = do
-    let pr = proc "../z3-4.8.1.016872a5e0f6-x64-ubuntu-16.04/bin/z3" ["-smt2", "-in"]
+    let pr = proc "z3" ["-smt2", "-in"]
     (mb_stdin_hdl, mb_stdout_hdl, mb_stderr_hdl, ph) <- createProcess (pr { std_in = CreatePipe, std_out = CreatePipe })
 
     case mb_stderr_hdl of
@@ -182,7 +185,7 @@ callZ3 wp stdin_hdl stdout_hdl = do
                 then return "Not verified"
             else if (output == "unsat")
                 then return "Verified"
-            else return "UNKNOWN"
-        False -> return "UNKNOWN"
+            else return "Not verified"
+        False -> return "Not verified"
     hPutStr stdin_hdl "(exit)"
     return res

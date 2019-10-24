@@ -19,3 +19,14 @@ is
     cIdx = cIdx + 1;
   end
 end
+
+  found := false;
+
+
+  if found <= N then
+    if out[found] = 1 then
+      found := true;
+    end
+  end
+
+  post (!(exists i, (in[i] = key))) ==> found = 0

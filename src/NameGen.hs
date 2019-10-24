@@ -1,10 +1,15 @@
-module NameGen where
+module NameGen ( NameGen (..)
+               , initNameGen
+               , freshSeededIntName
+               , freshSeededArrName ) where
 
 import Language
 import qualified Data.Map as M
 
 -- | For each Type (Int or Arr), maps a seed Name (e.g. 'a') to the largest integer appended to any 
--- name generated from the integer so far (e.g. 'a7')
+-- name generated from the integer so far (e.g. 'a__7'). Note: All variables in program need to be
+-- renamed, in the unlikely case we encounter e.g. an 'a__1' in the program after already renaming
+-- 'a' to 'a__1'
 data NameGen = NameGen { intNameMax :: M.Map Name Integer, arrNameMax :: M.Map Name Integer }
 
 initNameGen :: NameGen

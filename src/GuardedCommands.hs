@@ -1,4 +1,5 @@
-module GuardedCommands where
+module GuardedCommands ( GC (..)
+                       , toGC ) where
 
 import Language
 import NameGen

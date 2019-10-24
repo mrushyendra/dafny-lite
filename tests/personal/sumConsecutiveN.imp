@@ -1,0 +1,14 @@
+program Sum1ToN
+  pre n > 0
+  post sum = (n * (n + 1))/2
+is
+  counter := 0;
+  sum := 0;
+  while (counter < n)
+    inv counter <= n
+    inv sum = (counter * (counter + 1))/2
+  do
+    counter := counter + 1;
+    sum := sum + counter;
+  end
+end

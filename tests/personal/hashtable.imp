@@ -1,0 +1,32 @@
+program find2
+  pre N > 0
+  pre M > 0
+  pre key > 0 && key <= N
+  pre key2 > 0 && key2 <= N
+  pre forall i, (0 < i && i <= N) ==> out[i] = 0 
+  pre forall i, (0 < i && i <= M) ==> (in[i] <= N) && (in[i] > 0)    
+  post forall i, (0 < i && i <= M) ==> out[in[i]] = 1
+  post exists i j, (in[i] = key && in[j] = key2) ==> found = 1
+is
+  idx := 0;
+  while (idx < M)
+    inv forall i, (0 < i && i <= idx) ==> out[in[i]] = 1
+  do
+    idx := idx + 1;
+    num := in[idx];
+    out[num] := 1;
+  end
+
+  found := 0;
+    
+  if out[key] = 1 then
+    found := 1;
+  end
+
+  if out[key2] = 1 then
+    found := 1;
+  else
+    found := 0;
+  end
+
+end
