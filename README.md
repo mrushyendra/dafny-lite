@@ -26,8 +26,9 @@ If all postconditions and loop invariants are verified, Dafny-Lite prints 'Verif
 ---
 #### To run:
 
-###### Command Line:
+Command Line:
 
-Run the built executable with any IMP program
+Run the built executable with any IMP program:
 `cabal run vcgen ./Path/to/program.imp`
+
 ---
